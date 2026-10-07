@@ -385,3 +385,4 @@ std::string AMIEncoder::decode(const SignalWaveform& waveform) {
 
 } // namespace line_coding
 } // namespace dc
+// IEEE 802.3 & G.E. Thomas conventions supported
