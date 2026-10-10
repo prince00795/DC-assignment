@@ -395,3 +395,223 @@ class NRZIEncoder(LineEncoder):
         wf = self.encode(bits, initial_voltage=initial_voltage)
         return wf.metadata["average_voltage"]
 
+
+class ManchesterEncoder(LineEncoder):
+    """
+    Manchester (Biphase) Line Encoder & Decoder.
+
+    In Manchester encoding, every bit interval Tb is divided into two equal halves.
+    A signal transition occurs at the exact center of every bit interval (mid-bit),
+    providing built-in clock synchronization and zero net DC bias.
+
+    Supported Conventions:
+    - IEEE 802.3 Convention (Standard Ethernet / 10BASE-T):
+        * Bit '0': High-to-Low transition (+V in first half, -V in second half)
+        * Bit '1': Low-to-High transition (-V in first half, +V in second half)
+    - G.E. Thomas Convention (Classical telecommunications definition):
+        * Bit '0': Low-to-High transition (-V in first half, +V in second half)
+        * Bit '1': High-to-Low transition (+V in first half, -V in second half)
+
+    Key Signal Characteristics:
+    - Self-clocking: Guaranteed transition at mid-bit on every single bit.
+    - Zero DC Bias: Equal durations of positive and negative voltage per bit interval.
+    - Bandwidth: Requires double the baseband bandwidth of NRZ due to higher transition rate.
+    """
+
+    def __init__(
+        self,
+        samples_per_bit: int = 100,
+        bit_duration: float = 1.0,
+        positive_voltage: float = 1.0,
+        negative_voltage: float = -1.0,
+        zero_voltage: float = 0.0,
+        convention: str = "ieee",
+    ) -> None:
+        """
+        Initialize the Manchester Encoder.
+
+        :param samples_per_bit: Discrete time samples per bit interval (must be >= 4).
+        :param bit_duration: Bit duration Tb in seconds.
+        :param positive_voltage: High voltage level +V.
+        :param negative_voltage: Low voltage level -V.
+        :param zero_voltage: Ground level 0.0V.
+        :param convention: 'ieee' for IEEE 802.3 or 'thomas' for G.E. Thomas.
+        """
+        if samples_per_bit < 4:
+            raise ValueError(f"Manchester encoding requires at least 4 samples_per_bit, got {samples_per_bit}")
+        super().__init__(
+            samples_per_bit=samples_per_bit,
+            bit_duration=bit_duration,
+            positive_voltage=positive_voltage,
+            negative_voltage=negative_voltage,
+            zero_voltage=zero_voltage,
+        )
+        if positive_voltage <= negative_voltage:
+            raise ValueError(
+                f"positive_voltage ({positive_voltage}) must be greater than negative_voltage ({negative_voltage})"
+            )
+
+        conv = convention.strip().lower()
+        if conv not in ("ieee", "thomas"):
+            raise ValueError(f"Unknown convention '{convention}', must be 'ieee' or 'thomas'")
+        self.convention = conv
+
+    @property
+    def scheme_name(self) -> str:
+        """Name of the line coding scheme."""
+        return f"Manchester ({'IEEE 802.3' if self.convention == 'ieee' else 'G.E. Thomas'})"
+
+    def bit_to_half_voltages(self, bit: str) -> Tuple[float, float]:
+        """
+        Maps a binary bit to the voltage levels of the first and second half of its bit interval.
+
+        :param bit: '0' or '1'
+        :return: Tuple of (first_half_voltage, second_half_voltage)
+        """
+        if bit == "0":
+            if self.convention == "ieee":
+                return self.positive_voltage, self.negative_voltage
+            else:
+                return self.negative_voltage, self.positive_voltage
+        elif bit == "1":
+            if self.convention == "ieee":
+                return self.negative_voltage, self.positive_voltage
+            else:
+                return self.positive_voltage, self.negative_voltage
+        else:
+            raise ValueError(f"Invalid bit '{bit}', expected '0' or '1'")
+
+    def encode(self, bits: str) -> SignalWaveform:
+        """
+        Encodes a binary bitstream into a physical Manchester SignalWaveform.
+
+        :param bits: Binary bitstream string.
+        :return: SignalWaveform with mid-bit transitions and time grid.
+        """
+        self._validate_input(bits)
+
+        time_points: List[float] = []
+        voltages: List[float] = []
+        dt = self.bit_duration / self.samples_per_bit
+        half_samples = self.samples_per_bit // 2
+        second_half_samples = self.samples_per_bit - half_samples
+        num_bits = len(bits)
+
+        midbit_transitions = num_bits
+        boundary_transitions = 0
+        prev_end_voltage: Optional[float] = None
+
+        for i, bit in enumerate(bits):
+            v_first, v_second = self.bit_to_half_voltages(bit)
+            bit_start_time = i * self.bit_duration
+
+            # Check for boundary transition between consecutive bits
+            if prev_end_voltage is not None and v_first != prev_end_voltage:
+                boundary_transitions += 1
+            prev_end_voltage = v_second
+
+            # First half-bit interval [0, Tb/2)
+            for s in range(half_samples):
+                t = bit_start_time + s * dt
+                time_points.append(t)
+                voltages.append(v_first)
+
+            # Second half-bit interval [Tb/2, Tb)
+            for s in range(second_half_samples):
+                t = bit_start_time + (half_samples + s) * dt
+                time_points.append(t)
+                voltages.append(v_second)
+
+        total_transitions = midbit_transitions + boundary_transitions
+        transition_density = total_transitions / num_bits
+        average_voltage = sum(voltages) / len(voltages)
+
+        metadata: Dict[str, object] = {
+            "scheme": self.scheme_name,
+            "convention": self.convention,
+            "transitions": total_transitions,
+            "midbit_transitions": midbit_transitions,
+            "boundary_transitions": boundary_transitions,
+            "transition_density": transition_density,
+            "average_voltage": average_voltage,
+            "has_dc_bias": abs(average_voltage) > 1e-4,
+        }
+
+        return SignalWaveform(
+            bits=bits,
+            time_points=time_points,
+            voltages=voltages,
+            samples_per_bit=self.samples_per_bit,
+            bit_duration=self.bit_duration,
+            positive_voltage=self.positive_voltage,
+            negative_voltage=self.negative_voltage,
+            zero_voltage=self.zero_voltage,
+            metadata=metadata,
+        )
+
+    def decode(self, waveform: SignalWaveform) -> str:
+        """
+        Decodes a physical Manchester SignalWaveform by probing the first and second half
+        of each bit interval to detect the direction of the mid-bit transition edge.
+
+        :param waveform: Encoded SignalWaveform object.
+        :return: Reconstructed binary string.
+        """
+        if waveform.num_bits == 0:
+            return ""
+
+        threshold = (self.positive_voltage + self.negative_voltage) / 2.0
+        recovered_bits: List[str] = []
+        spb = waveform.samples_per_bit
+
+        for i in range(waveform.num_bits):
+            base_idx = i * spb
+            # Probe at quarter-point and three-quarter point of each bit interval
+            idx_first = base_idx + (spb // 4)
+            idx_second = base_idx + (3 * spb // 4)
+
+            v1 = waveform.voltages[idx_first]
+            v2 = waveform.voltages[idx_second]
+
+            first_is_high = (v1 >= threshold)
+            second_is_high = (v2 >= threshold)
+
+            if first_is_high and not second_is_high:
+                # High-to-Low falling edge
+                bit = "0" if self.convention == "ieee" else "1"
+            elif not first_is_high and second_is_high:
+                # Low-to-High rising edge
+                bit = "1" if self.convention == "ieee" else "0"
+            else:
+                raise ValueError(
+                    f"Manchester violation at bit index {i}: expected mid-bit edge but found "
+                    f"flat level (v_first={v1:+.2f}V, v_second={v2:+.2f}V)"
+                )
+
+            recovered_bits.append(bit)
+
+        return "".join(recovered_bits)
+
+    def calculate_transition_density(self, bits: str) -> float:
+        """
+        Calculates transition density for a bitstream in Manchester coding.
+        Always >= 1.0 due to mandatory mid-bit transitions.
+
+        :param bits: Binary bitstream.
+        :return: Float >= 1.0.
+        """
+        self._validate_input(bits)
+        wf = self.encode(bits)
+        return wf.metadata["transition_density"]
+
+    def calculate_dc_bias(self, bits: str) -> float:
+        """
+        Theoretical DC bias in Manchester encoding is always exactly 0.0V.
+
+        :param bits: Binary bitstream.
+        :return: 0.0
+        """
+        self._validate_input(bits)
+        return 0.0
+
+
