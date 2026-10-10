@@ -158,6 +158,68 @@ class TestManachersAlgorithm(unittest.TestCase):
         # Center of 'aba' is at index 4 (the 'b'): p[4] should be 3
         self.assertEqual(p[4], 3)
 
+    def test_palindrome_at_boundaries(self) -> None:
+        """Verify palindromes positioned at string boundaries."""
+        # Palindrome at exact start
+        res_start = find_longest_palindrome("racecar123456")
+        self.assertEqual(res_start.substring, "racecar")
+        self.assertEqual(res_start.start, 0)
+        self.assertEqual(res_start.end, 7)
+
+        # Palindrome at exact end
+        res_end = find_longest_palindrome("123456racecar")
+        self.assertEqual(res_end.substring, "racecar")
+        self.assertEqual(res_end.start, 6)
+        self.assertEqual(res_end.end, 13)
+
+        # Palindrome spanning entire string
+        res_full = find_longest_palindrome("deified")
+        self.assertEqual(res_full.substring, "deified")
+        self.assertEqual(res_full.length, 7)
+        self.assertEqual(res_full.start, 0)
+        self.assertEqual(res_full.end, 7)
+
+        # No palindrome longer than 1 character
+        res_none = find_longest_palindrome("abcdef")
+        self.assertEqual(res_none.length, 1)
+
+    def test_find_all_unique_substrings(self) -> None:
+        """Verify deduplication when unique_substrings=True."""
+        text = "aaaa"
+        all_unique = find_all_palindromes(text, min_length=2)
+        unique_results = ManachersAlgorithm(text).find_all(min_length=2, unique_substrings=True)
+        unique_subs = [r.substring for r in unique_results]
+        self.assertEqual(len(unique_subs), len(set(unique_subs)))
+        self.assertIn("aaaa", unique_subs)
+        self.assertIn("aaa", unique_subs)
+        self.assertIn("aa", unique_subs)
+
+    def test_large_scale_linear_performance(self) -> None:
+        """Verify strict O(N) linear performance on large sequences (10,000+ chars)."""
+        import time
+        # 10,000 characters with an embedded palindrome of length 201 in the middle
+        left = "01" * 2500
+        center = "100" * 30 + "1" + "001" * 30  # palindrome
+        right = "10" * 2500
+        large_stream = left + center + right
+
+        t_start = time.perf_counter()
+        res = find_longest_palindrome(large_stream)
+        t_elapsed = time.perf_counter() - t_start
+
+        self.assertLess(t_elapsed, 0.5)  # Should complete in < 500ms
+        self.assertTrue(is_palindrome(res.substring))
+        self.assertGreaterEqual(res.length, len(center))
+
+    def test_worst_case_repeated_patterns(self) -> None:
+        """Verify linear scaling on worst-case identical character repetition."""
+        repeated = "0" * 8000
+        res = find_longest_palindrome(repeated)
+        self.assertEqual(res.length, 8000)
+        self.assertEqual(res.start, 0)
+        self.assertEqual(res.end, 8000)
+
 
 if __name__ == "__main__":
     unittest.main()
+
