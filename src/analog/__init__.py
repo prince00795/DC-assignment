@@ -1,6 +1,7 @@
 """Analog signal processing package for ITT 036 Assignment."""
 from .continuous_signal import ContinuousSignal, ToneComponent
 from .sampling import NyquistSampler, SamplingResult
+from .quantization import UniformQuantizer, QuantizationResult
 from .plotter import plot_continuous_and_sampled, plot_nyquist_reconstruction
 
 __all__ = [
@@ -8,6 +9,8 @@ __all__ = [
     "ToneComponent",
     "NyquistSampler",
     "SamplingResult",
+    "UniformQuantizer",
+    "QuantizationResult",
     "plot_continuous_and_sampled",
     "plot_nyquist_reconstruction",
 ]
