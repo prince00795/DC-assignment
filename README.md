@@ -1,14 +1,14 @@
-# Digital Signal Encoder & Decoder
+# Digital Signal Encoder & Decoder System
 
-Implementation of a digital signal transmission, modulation, and line coding system for **ITT 036 (Programming Assignment 1)**.
+Implementation of a digital signal transmission, modulation, and baseband line coding system for **ITT 036 (Programming Assignment 1)**.
 
-The project models the physical layer of digital communication, covering discrete data generation, competitive string algorithms, baseband line coding, scrambling techniques, analog pulse modulation (PCM / Delta Modulation), and physical waveform decoding.
+The project models the physical and transport layers of digital communication, covering discrete data generation, competitive string algorithms, baseband line coding, scrambling techniques, analog pulse code modulation (PCM), uniform quantization, and physical waveform decoding.
 
 ---
 
-## Architecture & Features
+## Architecture & Subsystems
 
-### 1. Digital Data Generation & Algorithmic Optimization (Person 1)
+### 1. Digital Data Stream Engineering & Algorithmic Optimization
 - **Random Sequence Generation**: Configurable pseudo-random binary stream generation with uniform bit distribution.
 - **Pattern Injection**:
   - `generate_b8zs_stream(length, num_injections)`: Guaranteed runs of 8 consecutive zeros (`00000000`) for B8ZS scrambling validation.
@@ -20,8 +20,9 @@ The project models the physical layer of digital communication, covering discret
   - Intersperses boundary characters (`#`) with terminal sentinels (`^`, `$`) to handle even and odd palindromes uniformly.
   - Maintains center and rightmost boundary references ($C, R$) to eliminate redundant character comparisons.
   - Outperforms naive $O(N^2)$ expand-around-center checks while preserving identical output accuracy.
+  - Stress-tested on large strings ($10^4+$ characters) and worst-case repeated patterns.
 
-### 2. Physical Signal Modeling & Line Coding Schemes (Person 2)
+### 2. Baseband Physical Line Coding & Receiver Decoders
 - **Signal Waveform Model (`SignalWaveform`)**: Represents discrete-time physical voltage signals $V(t)$, tracking sample points, bit durations, nominal voltage levels ($+V, 0V, -V$), and mid-bit sampling points.
 - **NRZ-L Encoder & Decoder (`NRZLEncoder`)**:
   - Non-Return-to-Zero-Level encoding with constant voltage over bit duration $T_b$.
@@ -33,8 +34,19 @@ The project models the physical layer of digital communication, covering discret
     - Inverted Mode: bit `'0'` triggers voltage inversion, bit `'1'` maintains level.
   - Differential transition tracking: records transition indices, counts, and transition density.
   - Differential receiver decoder: probes mid-bit voltage levels and compares adjacent intervals to reconstruct the original stream with 100% fidelity without polarity ambiguity.
+- **Manchester Biphase Encoder & Decoder (`ManchesterEncoder`)**:
+  - Biphase line coding with guaranteed mid-bit transitions on every bit interval for clock recovery and zero net DC bias.
+  - **IEEE 802.3 Standard (Ethernet 10BASE-T)**:
+    - Bit `'0'`: High-to-Low transition ($+V \to -V$).
+    - Bit `'1'`: Low-to-High transition ($-V \to +V$).
+  - **G.E. Thomas Convention**:
+    - Bit `'0'`: Low-to-High transition ($-V \to +V$).
+    - Bit `'1'`: High-to-Low transition ($+V \to -V$).
+  - Boundary transition tracking between consecutive identical bits.
+  - Physical receiver decoding by probing quarter-points ($0.25 T_b$) and three-quarter points ($0.75 T_b$) to detect edge direction.
+  - Signal violation detection for un-transitioned or corrupt intervals.
 
-### 3. Continuous Analog Signal & Nyquist Sampling (Person 3)
+### 3. Analog Continuous DSP, Nyquist Sampling & Uniform PCM Quantization
 - **Continuous Multi-Tone Modeling (`ContinuousSignal`)**:
   - Continuous sinusoidal modeling: $x(t) = \sum A_k \sin(2\pi f_k t + \phi_k) + V_{DC}$.
   - Dual-tone signaling factory (e.g., DTMF telecommunication tones).
@@ -52,6 +64,19 @@ The project models the physical layer of digital communication, covering discret
     - Reconstructs continuous waveforms from discrete samples: $\hat{x}(t) = \sum x[n] \cdot \text{sinc}\left(\frac{t - n T_s}{T_s}\right)$.
     - Evaluates Mean Squared Error (MSE), RMSE, Max Error, and SNR (dB), demonstrating near-perfect reconstruction when $f_s \ge 2 f_{\max}$ vs distortion under sub-Nyquist rates.
   - High-resolution Matplotlib visualizers: `plot_continuous_and_sampled` and `plot_nyquist_reconstruction`.
+- **Uniform PCM Quantization & Binary Codec (`UniformQuantizer`)**:
+  - Quantizes continuous amplitude samples into $L = 2^n$ discrete representation levels for $n$-bit resolution.
+  - Uniform step size: $\Delta = \frac{V_{\max} - V_{\min}}{2^n}$.
+  - Mid-rise and Mid-tread quantization partition models.
+  - Binary codeword mappings:
+    - Natural binary (offset binary).
+    - Gray coding (adjacent level Hamming distance of 1 to minimize transmission bit error impact).
+    - Two's complement representation.
+  - Error and noise metrics:
+    - Max quantization error bounded by $|e| \le \frac{\Delta}{2}$.
+    - Quantization noise power ($P_Q$) compared against theoretical value $\frac{\Delta^2}{12}$.
+    - Empirical and theoretical Signal-to-Quantization-Noise Ratio (SQNR $\approx 6.02 n + 1.76$ dB).
+  - Serialization into binary PCM bitstreams and DAC dequantization reconstruction.
 
 ---
 
@@ -62,23 +87,24 @@ DC-assignment/
 ├── PROJECT_PLAN.md               # 2-Week day-by-day implementation roadmap
 ├── README.md                     # Project overview and system documentation
 ├── requirements.txt              # Dependencies (numpy, matplotlib, pytest)
-├── main.py                       # Milestone system verification script
+├── main.py                       # Integrated pipeline verification script
 ├── src/
 │   ├── __init__.py
-│   ├── algorithms/               # [Person 1] Algorithmic optimizations
+│   ├── algorithms/               # Algorithmic optimizations
 │   │   ├── __init__.py
 │   │   └── palindrome.py         # Manacher's O(N) palindrome search & naive baseline
-│   ├── generator/                # [Person 1] Digital bitstream generation
+│   ├── generator/                # Digital bitstream generation
 │   │   ├── __init__.py
 │   │   └── data_generator.py     # Random & pattern-injected generator (B8ZS/HDB3)
-│   ├── line_coding/              # [Person 2] Line coding and signal models
+│   ├── line_coding/              # Baseband line coding and signal models
 │   │   ├── __init__.py
 │   │   ├── base.py               # LineEncoder base class & SignalWaveform model
-│   │   └── encoders.py           # NRZ-L & NRZ-I encoders & physical decoders
-│   └── analog/                   # [Person 3] Continuous signals and sampling
+│   │   └── encoders.py           # NRZ-L, NRZ-I, and Manchester encoders & decoders
+│   └── analog/                   # Continuous signals, sampling, and quantization
 │       ├── __init__.py
 │       ├── continuous_signal.py  # Single/multi-tone modeling & Fourier harmonics
 │       ├── sampling.py           # Nyquist sampling engine & Whittaker-Shannon sinc reconstruction
+│       ├── quantization.py       # Uniform PCM quantizer & binary codeword encoding
 │       └── plotter.py            # Waveform visualization utilities
 └── tests/
     ├── __init__.py
@@ -87,8 +113,10 @@ DC-assignment/
     ├── test_base_encoder.py      # Signal waveform data model tests
     ├── test_nrz_l.py             # NRZ-L line coding & decoding tests
     ├── test_nrz_i.py             # NRZ-I differential coding & decoding tests
+    ├── test_manchester.py        # Manchester IEEE 802.3 and Thomas line coding tests
     ├── test_continuous_signal.py # Multi-tone analog & Fourier harmonic tests
-    └── test_sampling.py          # Nyquist sampling, aliasing & sinc reconstruction tests
+    ├── test_sampling.py          # Nyquist sampling, aliasing & sinc reconstruction tests
+    └── test_quantization.py      # Uniform PCM quantization, SQNR & Gray code tests
 ```
 
 ---

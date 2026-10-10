@@ -1,176 +1,175 @@
 """
-ITT 036: Programming Assignment 1 — Main Entrypoint
-===================================================
-Digital Signal Encoder & Decoder System
-Autumn 2026
-
-Day 3 Milestone System Verification:
-- [Person 1] Algorithmic Data Stream Engineering:
-    * Digital data generation & pattern-injected streams (B8ZS 8-zeros, HDB3 4-zeros)
-    * O(N) Manacher's Algorithm for longest palindromic substring discovery
-    * Verification against naive O(N^2) expand-around-center benchmark
-- [Person 2] Line Coding & Differential Signaling:
-    * NRZ-L (Non-Return-to-Zero-Level) Encoder & Decoder
-    * NRZ-I (Non-Return-to-Zero-Invert) Encoder with differential transition tracking
-    * Invert-on-1 vs Invert-on-0 configurable logic
-    * Receiver mid-point probing and differential transition decoding
-- [Person 3] Analog Continuous DSP & Nyquist Sampling:
-    * Continuous multi-tone signal synthesis & Fourier harmonic modeling
-    * Nyquist sampling module (fs >= 2 * f_max)
-    * Sampling modes: Ideal Impulse, Flat-Top (Zero-Order Hold), Natural Sampling
-    * Aliasing detection and spectral folding frequency analysis
-    * Whittaker-Shannon sinc interpolation (DAC reconstruction) and MSE/SNR metrics
+ITT 036: Digital Signal Encoder & Decoder System
+================================================
+Comprehensive Pipeline Architecture:
+- Digital Data Stream Generation & Pattern Injection
+- O(N) Linear Time Manacher's String Palindrome Algorithm
+- Baseband Line Coding: NRZ-L, NRZ-I, and Manchester (IEEE 802.3 & G.E. Thomas)
+- Analog Continuous Waveform Synthesis & Fourier Harmonics
+- Nyquist-Shannon Sampling Engine & Whittaker-Shannon Sinc Reconstruction
+- Uniform PCM Quantization (L = 2^n levels, step size Delta, SQNR analysis)
+- End-to-End Pipeline Bridge: Analog -> Nyquist Sampling -> Quantization -> Line Coding
 """
 
 from __future__ import annotations
 import math
 from src.generator.data_generator import DataGenerator
 from src.algorithms.palindrome import (
-    ManachersAlgorithm,
     find_longest_palindrome,
     find_all_palindromes,
     naive_longest_palindrome,
 )
-from src.line_coding.encoders import NRZLEncoder, NRZIEncoder
-from src.analog.continuous_signal import ContinuousSignal, ToneComponent
+from src.line_coding.encoders import NRZLEncoder, NRZIEncoder, ManchesterEncoder
+from src.analog.continuous_signal import ContinuousSignal
 from src.analog.sampling import NyquistSampler
+from src.analog.quantization import UniformQuantizer
 
 
 def main() -> None:
     print("=" * 80)
-    print(" ITT 036: Digital Signal Encoder & Decoder (Autumn 2026) ")
-    print(" Milestone Day 3: Manacher's O(N) Algorithm, NRZ-I Line Coding & Nyquist Sampling ")
+    print(" ITT 036: DIGITAL SIGNAL TRANSMISSION, MODULATION & LINE CODING SYSTEM ")
     print("=" * 80)
 
     # -------------------------------------------------------------------------
-    # 1. Person 1: Digital Stream Engineering & O(N) Manacher's Algorithm
+    # 1. Digital Data Stream Engineering & Competitive String Algorithms
     # -------------------------------------------------------------------------
-    print("\n" + "-" * 80)
-    print(" [PERSON 1: Digital Stream Engineering & O(N) Manacher's Palindrome Search]")
-    print("-" * 80)
+    print("\n" + "=" * 80)
+    print(" MODULE 1: DATA STREAM ENGINEERING & STRING ALGORITHMS")
+    print("=" * 80)
 
     gen = DataGenerator(seed=2026)
-    bitstream = gen.generate_b8zs_stream(length=32, num_injections=1)
-    print(f" -> Generated 32-bit Stream:       {bitstream}")
-    print(f"    Max Consecutive Zeros:         {DataGenerator.max_consecutive_zeros(bitstream)}")
+    random_stream = gen.generate_random(16)
+    b8zs_stream = gen.generate_b8zs_stream(length=32, num_injections=1)
 
-    # Execute O(N) Manacher's Algorithm
-    manacher_result = find_longest_palindrome(bitstream)
-    naive_result = naive_longest_palindrome(bitstream)
+    print(f" -> Pure Random 16-bit Stream:       {random_stream}")
+    print(f" -> Pattern-Injected Stream:         {b8zs_stream}")
+    print(f"    Longest Zero Run Length:         {DataGenerator.max_consecutive_zeros(b8zs_stream)} consecutive zeros")
+    print(f"    Detected Zero Blocks:            {DataGenerator.find_zero_runs(b8zs_stream)}")
 
-    print(f"\n -> Manacher's O(N) Search Result:")
-    print(f"    Longest Palindromic Substring: '{manacher_result.substring}'")
-    print(f"    Length:                        {manacher_result.length} bits")
-    print(f"    Span [Start:End]:              [{manacher_result.start}:{manacher_result.end}]")
-    print(f"    Center Position:               {manacher_result.center_index:.1f}")
-    print(f"    Parity:                        {'Even-length' if manacher_result.is_even else 'Odd-length'}")
-    print(f"    Validated with Naive O(N^2):   {'MATCHED' if manacher_result.length == naive_result.length else 'MISMATCH'}")
+    # O(N) Manacher's Algorithm Execution
+    manacher_res = find_longest_palindrome(b8zs_stream)
+    naive_res = naive_longest_palindrome(b8zs_stream)
 
-    # Inspect multiple palindromes
-    palindromes_list = find_all_palindromes(bitstream, min_length=4)
-    if palindromes_list:
-        print(f"    Other Palindromes (len >= 4):  {[p.substring for p in palindromes_list[:4]]}")
+    print(f"\n -> Manacher's O(N) Palindromic Search:")
+    print(f"    Longest Palindromic Substring:   '{manacher_res.substring}'")
+    print(f"    Length:                          {manacher_res.length} bits")
+    print(f"    Span [Start:End]:                [{manacher_res.start}:{manacher_res.end}]")
+    print(f"    Center Coordinate:               {manacher_res.center_index:.1f}")
+    print(f"    Parity:                          {'Even-length' if manacher_res.is_even else 'Odd-length'}")
+    print(f"    Validation vs Naive O(N^2):      {'MATCHED (Exact match)' if manacher_res.length == naive_res.length else 'MISMATCH'}")
 
     # -------------------------------------------------------------------------
-    # 2. Person 2: Line Coding — NRZ-L vs NRZ-I Differential Signaling
+    # 2. Baseband Physical Line Coding Schemes & Receiver Decoders
     # -------------------------------------------------------------------------
-    print("\n" + "-" * 80)
-    print(" [PERSON 2: Line Coding Schemes — NRZ-L vs NRZ-I Differential Signaling]")
-    print("-" * 80)
+    print("\n" + "=" * 80)
+    print(" MODULE 2: BASEBAND LINE CODING SCHEMES & RECEIVER DECODERS")
+    print("=" * 80)
 
-    test_bits = "10110010"
-    print(f" -> Input Bitstream:               '{test_bits}'")
+    test_stream = "10110010"
+    print(f" -> Input Test Stream:               '{test_stream}'")
 
-    # 2a. NRZ-L
-    encoder_nrzl = NRZLEncoder(positive_voltage=2.5, negative_voltage=-2.5, zero_is_positive=True)
-    wf_nrzl = encoder_nrzl.encode(test_bits)
-    decoded_nrzl = encoder_nrzl.decode(wf_nrzl)
-    print(f"\n -> [NRZ-L (Level-Based)]:")
-    print(f"    Scheme:                        {encoder_nrzl.scheme_name}")
-    print(f"    Mapping:                       '0' -> +{encoder_nrzl.positive_voltage}V, '1' -> {encoder_nrzl.negative_voltage}V")
-    print(f"    Transitions Count:             {wf_nrzl.metadata['transitions']} (Density: {wf_nrzl.metadata['transition_density']:.2f})")
-    print(f"    Average DC Voltage:            {wf_nrzl.metadata['average_voltage']:+.3f} V")
-    print(f"    Mid-Point Probe Bit Recovery:  '{decoded_nrzl}' [Matched: {decoded_nrzl == test_bits}]")
+    # 2a. NRZ-L (Non-Return-to-Zero-Level)
+    nrzl = NRZLEncoder(positive_voltage=2.5, negative_voltage=-2.5, zero_is_positive=True)
+    wf_nrzl = nrzl.encode(test_stream)
+    decoded_nrzl = nrzl.decode(wf_nrzl)
+    print(f"\n [1] NRZ-L (Level-Based Signaling):")
+    print(f"     Mapping:                        '0' -> +{nrzl.positive_voltage}V, '1' -> {nrzl.negative_voltage}V")
+    print(f"     Transitions Count:              {wf_nrzl.metadata['transitions']} (Density: {wf_nrzl.metadata['transition_density']:.2f})")
+    print(f"     Average DC Bias:                {wf_nrzl.metadata['average_voltage']:+.3f} V")
+    print(f"     Receiver Decoding Recovery:     '{decoded_nrzl}' [Verified: {decoded_nrzl == test_stream}]")
 
     # 2b. NRZ-I (Non-Return-to-Zero-Invert)
-    encoder_nrzi = NRZIEncoder(
-        positive_voltage=2.5,
-        negative_voltage=-2.5,
-        transition_on_one=True,   # Bit '1' inverts voltage, '0' holds
-        initial_voltage=2.5,      # Starts at +2.5V reference
-    )
-    wf_nrzi = encoder_nrzi.encode(test_bits)
-    decoded_nrzi = encoder_nrzi.decode(wf_nrzi)
+    nrzi = NRZIEncoder(positive_voltage=2.5, negative_voltage=-2.5, transition_on_one=True, initial_voltage=2.5)
+    wf_nrzi = nrzi.encode(test_stream)
+    decoded_nrzi = nrzi.decode(wf_nrzi)
+    print(f"\n [2] NRZ-I (Differential Transition Signaling):")
+    print(f"     Rule:                           '1' -> Level Invert, '0' -> Level Hold")
+    print(f"     Initial State:                  +{wf_nrzi.metadata['initial_voltage']:.1f} V")
+    print(f"     Transition Indices:             {wf_nrzi.metadata['transition_indices']}")
+    print(f"     Transition Density:             {wf_nrzi.metadata['transition_density']:.2f}")
+    print(f"     Differential Receiver Recovery: '{decoded_nrzi}' [Verified: {decoded_nrzi == test_stream}]")
 
-    print(f"\n -> [NRZ-I (Transition / Differential-Based)]:")
-    print(f"    Scheme:                        {encoder_nrzi.scheme_name}")
-    print(f"    Rule:                          '1' -> Transition (Invert Level), '0' -> No Transition (Hold)")
-    print(f"    Initial Reference Voltage:     +{wf_nrzi.metadata['initial_voltage']:.1f} V")
-    print(f"    Bit Voltage Levels:            {wf_nrzi.metadata['bit_levels']}")
-    print(f"    Transition Indices:            {wf_nrzi.metadata['transition_indices']}")
-    print(f"    Total Transitions:             {wf_nrzi.metadata['transitions']} (Density: {wf_nrzi.metadata['transition_density']:.2f})")
-    print(f"    Average DC Voltage:            {wf_nrzi.metadata['average_voltage']:+.3f} V")
+    # 2c. Manchester Biphase Coding (IEEE 802.3 and G.E. Thomas)
+    manchester_ieee = ManchesterEncoder(positive_voltage=2.5, negative_voltage=-2.5, convention="ieee")
+    wf_manc_ieee = manchester_ieee.encode(test_stream)
+    decoded_manc_ieee = manchester_ieee.decode(wf_manc_ieee)
 
-    # Receiver Midpoint Probing & Differential Decode
-    print("    Receiver Probing & Differential Decoding:")
-    for b_idx in range(min(4, len(test_bits))):
-        t_mid, v_mid = wf_nrzi.get_midpoint_sample(b_idx)
-        print(f"      Bit [{b_idx}] ('{test_bits[b_idx]}'): probed t = {t_mid:4.2f}s -> V_mid = {v_mid:+5.2f}V")
+    manchester_thomas = ManchesterEncoder(positive_voltage=2.5, negative_voltage=-2.5, convention="thomas")
+    wf_manc_thomas = manchester_thomas.encode(test_stream)
+    decoded_manc_thomas = manchester_thomas.decode(wf_manc_thomas)
 
-    recovery_nrzi = (decoded_nrzi == test_bits)
-    print(f"    Differential Bit Recovery:     '{decoded_nrzi}' [Matched: {recovery_nrzi}]")
+    print(f"\n [3] Manchester Biphase Coding (Self-Clocking & Zero DC Bias):")
+    print(f"     IEEE 802.3 Standard:            '0' -> High-to-Low (+V -> -V), '1' -> Low-to-High (-V -> +V)")
+    print(f"     Total Transitions:              {wf_manc_ieee.metadata['transitions']} (Mid-bit: {wf_manc_ieee.metadata['midbit_transitions']}, Boundary: {wf_manc_ieee.metadata['boundary_transitions']})")
+    print(f"     Transition Density:             {wf_manc_ieee.metadata['transition_density']:.2f} (Guaranteed >= 1.0)")
+    print(f"     Net DC Voltage:                 {wf_manc_ieee.metadata['average_voltage']:+.4f} V (Strict 0.0V DC-free)")
+    print(f"     IEEE Receiver Recovery:         '{decoded_manc_ieee}' [Verified: {decoded_manc_ieee == test_stream}]")
+    print(f"     Thomas Receiver Recovery:       '{decoded_manc_thomas}' [Verified: {decoded_manc_thomas == test_stream}]")
 
     # -------------------------------------------------------------------------
-    # 3. Person 3: Analog DSP & Nyquist Sampling Module
+    # 3. Analog DSP, Nyquist Sampling & Uniform Quantization
     # -------------------------------------------------------------------------
-    print("\n" + "-" * 80)
-    print(" [PERSON 3: Analog Continuous Signal & Nyquist Sampling Subsystem]")
-    print("-" * 80)
+    print("\n" + "=" * 80)
+    print(" MODULE 3: ANALOG DSP, NYQUIST SAMPLING & PCM QUANTIZATION")
+    print("=" * 80)
 
-    # Composite multi-tone signal: 4 Hz and 10 Hz components
+    # Multi-tone continuous waveform
     analog_sig = ContinuousSignal.create_multitone(
-        components=[(2.0, 4.0), (1.5, 10.0, math.pi / 3)],
+        components=[(2.0, 4.0), (1.5, 10.0, math.pi / 4)],
         dc_offset=0.2,
     )
-    print(f" -> Continuous Analog Signal x(t):")
-    print(f"    Tones:                         Tone 1 (2.0V @ 4Hz) + Tone 2 (1.5V @ 10Hz)")
-    print(f"    Maximum Frequency (f_max):     {analog_sig.max_frequency:.1f} Hz")
-    print(f"    Theoretical Nyquist Rate:      {analog_sig.nyquist_rate:.1f} Hz (2 * f_max)")
+    print(f" -> Continuous Analog Signal x(t):   2.0*sin(2*pi*4*t) + 1.5*sin(2*pi*10*t + pi/4) + 0.2V")
+    print(f"    Highest Frequency (f_max):       {analog_sig.max_frequency:.1f} Hz")
+    print(f"    Nyquist Rate (2 * f_max):        {analog_sig.nyquist_rate:.1f} Hz")
+    print(f"    Average Power:                   {analog_sig.average_power:.3f} W | RMS Voltage: {analog_sig.rms_voltage:.3f} V")
 
     sampler = NyquistSampler()
 
-    # Case A: Oversampled Sampling (fs = 2.5 * Nyquist = 50 Hz)
-    fs_over = 2.5 * analog_sig.nyquist_rate
-    res_over = sampler.sample(analog_sig, sampling_rate=fs_over, duration=0.25, mode="ideal")
-    metrics_over = res_over.compute_reconstruction_metrics(analog_sig)
+    # Oversampling vs Undersampling
+    res_nyq = sampler.sample(analog_sig, sampling_rate=50.0, duration=0.2, mode="ideal")
+    metrics_nyq = res_nyq.compute_reconstruction_metrics(analog_sig)
+    print(f"\n -> Nyquist Sampling (fs = 50.0 Hz, OSR = 2.5x):")
+    print(f"    Nyquist Criterion Satisfied:     {res_nyq.is_nyquist_satisfied}")
+    print(f"    Whittaker-Shannon Recon MSE:     {metrics_nyq['mse']:.4e} V^2 (SNR: {metrics_nyq['snr_db']:.1f} dB)")
 
-    print(f"\n -> Sampling Scenario A: Oversampled (fs = {fs_over:.1f} Hz, OSR = 2.5x):")
-    print(f"    Nyquist Criterion Satisfied:   {res_over.is_nyquist_satisfied}")
-    print(f"    Samples Collected:             {res_over.num_samples}")
-    print(f"    Reconstruction MSE:            {metrics_over['mse']:.4e} V^2")
-    print(f"    Reconstruction SNR:            {metrics_over['snr_db']:.2f} dB (High Fidelity Reconstruction)")
+    res_alias = sampler.sample(analog_sig, sampling_rate=12.0, duration=0.2, mode="ideal")
+    alias_diag = sampler.detect_aliasing(analog_sig, sampling_rate=12.0)
+    print(f"\n -> Sub-Nyquist Undersampling (fs = 12.0 Hz < 20.0 Hz):")
+    print(f"    Aliasing Detected:               {alias_diag['has_aliasing']}")
+    print(f"    Apparent Baseband Frequencies:   {alias_diag['folded_frequencies']}")
 
-    # Case B: Undersampled Sampling (fs = 0.6 * Nyquist = 12 Hz < 20 Hz)
-    fs_under = 12.0
-    res_under = sampler.sample(analog_sig, sampling_rate=fs_under, duration=0.25, mode="ideal")
-    metrics_under = res_under.compute_reconstruction_metrics(analog_sig)
-    alias_diag = sampler.detect_aliasing(analog_sig, sampling_rate=fs_under)
+    # Uniform PCM Quantization
+    quantizer_3bit = UniformQuantizer(num_bits=3, v_min=-4.0, v_max=4.0, coding_scheme="natural")
+    q_res = quantizer_3bit.quantize(res_nyq.sample_values)
 
-    print(f"\n -> Sampling Scenario B: Undersampled (fs = {fs_under:.1f} Hz < {analog_sig.nyquist_rate:.1f} Hz):")
-    print(f"    Nyquist Criterion Satisfied:   {res_under.is_nyquist_satisfied} [ALIASING DETECTED]")
-    print(f"    Folding Frequency (fs / 2):    {alias_diag['folding_frequency']:.1f} Hz")
-    print(f"    Folded Apparent Frequencies:   {alias_diag['folded_frequencies']}")
-    print(f"    Reconstruction MSE:            {metrics_under['mse']:.4e} V^2")
-    print(f"    Reconstruction SNR:            {metrics_under['snr_db']:.2f} dB (Severe Aliasing Distortion)")
+    print(f"\n -> Uniform PCM Quantization (n = 3 bits, L = 8 levels):")
+    print(f"    Quantization Step Size (Δ):      {q_res.step_size:.4f} V")
+    print(f"    Max Error Bound (|e| <= Δ/2):    {q_res.max_error:.4f} V <= {q_res.step_size / 2:.4f} V")
+    print(f"    Empirical Noise Power:           {q_res.empirical_noise_power:.4e} V^2 (Theory: {q_res.theoretical_noise_power:.4e} V^2)")
+    print(f"    Empirical SQNR:                  {q_res.empirical_sqnr_db:.2f} dB (Theory: {q_res.theoretical_sqnr_db:.2f} dB)")
+    print(f"    Generated PCM Bitstream:         '{q_res.bitstream}' ({q_res.total_bits} bits)")
 
-    # Case C: Flat-Top (Zero-Order Hold) PAM Sampling
-    res_zoh = sampler.sample(analog_sig, sampling_rate=25.0, duration=0.1, mode="flat_top")
-    print(f"\n -> Sampling Mode: Flat-Top / Zero-Order Hold (ZOH):")
-    print(f"    Mode:                          {res_zoh.sampling_mode.upper()} (Staircase PAM)")
-    print(f"    ZOH Waveform Points:           {len(res_zoh.zoh_times)} points generated")
+    # -------------------------------------------------------------------------
+    # 4. Integrated End-to-End Pipeline Bridge
+    # -------------------------------------------------------------------------
+    print("\n" + "=" * 80)
+    print(" END-TO-END PIPELINE: ANALOG -> SAMPLING -> QUANTIZATION -> LINE CODING")
+    print("=" * 80)
+
+    # 15 bits = 5 full 3-bit PCM quantized samples
+    pcm_stream = q_res.bitstream[:15]
+    pcm_encoded_wf = manchester_ieee.encode(pcm_stream)
+    pcm_recovered_stream = manchester_ieee.decode(pcm_encoded_wf)
+    dac_reconstructed_voltages = quantizer_3bit.decode_bitstream(pcm_recovered_stream)
+
+    print(f" -> Digitized Analog Bitstream:      '{pcm_stream}' (5 quantized samples)")
+    print(f" -> Manchester Encoded Waveform:     {pcm_encoded_wf.total_samples} physical samples")
+    print(f" -> Line Receiver Decoded Stream:    '{pcm_recovered_stream}' [Matched: {pcm_recovered_stream == pcm_stream}]")
+    print(f" -> DAC Reconstructed Levels:        {[round(v, 3) for v in dac_reconstructed_voltages]} V")
+
 
     print("\n" + "=" * 80)
-    print(" Status: Day 3 Milestone Modules Successfully Tested, Verified & Validated! ")
+    print(" SYSTEM PIPELINE VERIFIED SUCCESSFULLY! ")
     print("=" * 80)
 
 
