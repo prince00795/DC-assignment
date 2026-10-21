@@ -18,6 +18,8 @@ scratch/
 # IDE & Editor files
 .vscode/
 .idea/
+.clangd
+compile_commands.json
 *.swp
 *.swo
 *~
