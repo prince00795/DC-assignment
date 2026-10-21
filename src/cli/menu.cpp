@@ -249,9 +249,10 @@ void MenuController::run_interactive() {
                   << "  [6] Delta Modulation (DM): 1-Bit Tracking, Slope Overload & Noise\n"
                   << "  [7] Full End-to-End Integrated Transmission Pipeline\n"
                   << "  [8] System Help & Architectural Documentation\n"
+                  << "  [9] Launch Interactive Visualizer & Oscilloscope Studio (Browser)\n"
                   << "  [0] Exit\n"
                   << "Active Bitstream (" << current_bitstream_.size() << " bits): " << current_bitstream_ << "\n"
-                  << "Enter selection [0-8]: ";
+                  << "Enter selection [0-9]: ";
 
         int choice = -1;
         if (!(std::cin >> choice)) {
@@ -279,8 +280,11 @@ void MenuController::run_interactive() {
             menu_pipeline();
         } else if (choice == 8) {
             show_help_guide();
+        } else if (choice == 9) {
+            std::cout << "[Visualizer] Launching interactive studio in default browser...\n";
+            system("start visualizer\\index.html");
         } else {
-            std::cout << "Invalid choice. Please select an option between 0 and 8.\n";
+            std::cout << "Invalid choice. Please select an option between 0 and 9.\n";
         }
     }
 }

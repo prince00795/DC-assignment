@@ -164,7 +164,29 @@ g++ -std=c++20 -O2 -Iinclude src/algorithms/*.cpp src/generator/*.cpp src/line_c
 
 ---
 
-## Interactive CLI & Waveform Visualization
+## Interactive Web Studio & Waveform Visualization
+
+Launch the state-of-the-art interactive visual laboratory directly in your browser:
+```powershell
+# Option 1: Via batch / PowerShell launcher
+.\open_visualizer.bat
+# or
+.\open_visualizer.ps1
+
+# Option 2: Via main C++ executable
+.\bin\dc_system.exe --gui
+
+# Option 3: Direct browser opening
+start visualizer\index.html
+```
+
+Features included in the interactive visualizer:
+- **Synchronized Multi-Track Oscilloscope**: Real-time rendering of Clock, NRZ-L, NRZ-I, Manchester IEEE & Thomas, Differential Manchester, AMI, B8ZS, and HDB3 with interactive hover probe for bit cells and voltages.
+- **Scrambler Violation Highlights**: Glowing badges for B8ZS (000VB0VB) and HDB3 (000V/B00V) violations ($V$) and balancing ($B$) pulses.
+- **Physical Slicing & BER Decoder Audit**: Mid-point voltage slicing (&plusmn;V/2) and edge clock recovery with 100% accuracy metrics.
+- **Analog Modulation & Sampling Lab**: Reactive sliders for dual-tone frequencies ($f_1, f_2$) and amplitudes, Nyquist rate indicator, Whittaker-Shannon Sinc reconstruction, Uniform PCM staircase ($2^n$ levels), and Delta Modulation (DM) slope overload detector.
+- **Web Audio Sonification**: Listen to synthesized continuous signals and quantized audio directly in your browser!
+- **Manacher's $O(N)$ Palindrome Studio**: Visual preprocessed string $T$, radii array $P[i]$, centers, and maximal palindromic spans.
 
 Run the interactive console dashboard:
 ```bash
@@ -175,12 +197,6 @@ Run automated Day 14 specification audit:
 ```bash
 ./bin/dc_system.exe --audit
 ```
-
-Export standalone HTML/SVG waveform dashboard:
-```bash
-./bin/dc_system.exe --demo
-```
-This generates `waveform_dashboard.html`, which can be opened directly in any browser for multi-track waveform inspection!
 
 ---
 

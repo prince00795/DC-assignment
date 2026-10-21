@@ -16,6 +16,12 @@ int main(int argc, char* argv[]) {
         } else if (arg == "--demo") {
             std::cout << "[Demo Mode] Executing full pipeline and generating report...\n";
             dc::cli::SystemReport::generate_audit_report();
+            std::cout << "[Opening Visualizer] Launching interactive dashboard in browser...\n";
+            system("start visualizer\\index.html");
+            return 0;
+        } else if (arg == "--gui" || arg == "--web" || arg == "--visual") {
+            std::cout << "[Visualizer] Launching interactive studio in default browser...\n";
+            system("start visualizer\\index.html");
             return 0;
         }
     }

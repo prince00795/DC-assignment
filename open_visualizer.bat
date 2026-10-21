@@ -1,0 +1,3 @@
+@echo off
+echo Starting ITT 036 Digital Communication Visualizer Studio...
+start "" "%~dp0visualizer\index.html"
