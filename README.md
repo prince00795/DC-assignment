@@ -7,77 +7,20 @@
 [![Decoder Accuracy](https://img.shields.io/badge/Decoder%20Accuracy-100.00%25%20(%E2%89%A599.9%25)-success.svg)]()
 [![Manacher Complexity](https://img.shields.io/badge/Algorithm-O(N)%20Strict%20Linear-blueviolet.svg)]()
 [![Test Suite](https://img.shields.io/badge/Tests-94%20%2F%2094%20Passing%20(100%25)-brightgreen.svg)]()
-[![Rubric Audit](https://img.shields.io/badge/Rubric%20Compliance-12%2F12%20Points%20(100%25)-gold.svg)]()
 
 ---
 
 ## 👩‍🏫 Quick 60-Second Evaluator Guide
 
-Welcome, Evaluator! To rapidly test and grade our submission, use one of the three verification paths below:
+Welcome, Evaluator! To rapidly test and run this project, use one of the verification paths below:
 
 | Verification Goal | macOS / Linux Terminal | Windows (CMD or PowerShell) | Expected Result |
 | :--- | :--- | :--- | :--- |
 | **1. Zero-Install Visual Studio (Instant)** | `open index.html` | Double-click `open_visualizer.bat` *(or `index.html`)* | Launches interactive Oscilloscope Studio with live sliders & Web Audio sonification |
 | **2. Run All Automated Tests** | `make test` | `.\build.ps1 test` *(or `.\bin\run_tests.exe`)* | **`94 / 94 passed (100% SUCCESS)`** |
-| **3. Live Rubric Specification Audit** | `./bin/dc_system --audit` | `.\bin\dc_system.exe --audit` | Live quantitative report showing **100.00% decoding accuracy** |
+| **3. Live System Specification Audit** | `./bin/dc_system --audit` | `.\bin\dc_system.exe --audit` | Live quantitative report showing **100.00% decoding accuracy** |
 | **4. Palindrome $O(N)$ Benchmark** | `make benchmark` | `.\build.ps1 benchmark` | Displays timing table comparing $O(N)$ Manacher vs $O(N^2)$ Naive |
 | **5. Interactive Menu System** | `./bin/dc_system` | `.\bin\dc_system.exe` | Interactive console menu for custom stream testing (Options 1–9) |
-
----
-
-## 👥 3-Person Team Division & Modular Architecture
-
-The project architecture strictly isolates responsibilities into three balanced engineering domains:
-
-```
-+---------------------------------------------------------------------------------------------------------+
-|                                        TEAM MEMBER RESPONSIBILITIES                                     |
-+------------------------------------+------------------------------------+-------------------------------+
-|  PERSON 1: Data & Algorithm Lead   |   PERSON 2: Line Coding & Decoder  |   PERSON 3: Analog DSP & GUI  |
-|                                    |            (Extra Credit)          |         (Extra Credit)        |
-+------------------------------------+------------------------------------+-------------------------------+
-| * Digital Data Generator           | * Base Line Encoders:              | * Pulse Code Modulation (PCM):|
-|   - High-entropy pseudo-random     |   - NRZ-L (Telecom & Inverted)     |   - Continuous analog waves   |
-|   - Pattern-injected (4 & 8 zeros) |   - NRZ-I (Differential)           |   - Nyquist sampling (fs>=2fm)|
-|   - Zero-run detection & metrics   |   - Manchester (IEEE & Thomas)     |   - Uniform quantizer (2^n)   |
-|                                    |   - Diff Manchester (IEEE 802.5)   |   - Natural, Gray, 2's comp   |
-| * Competitive Coding:              |   - AMI (Alternate Mark Inversion) |                               |
-|   - O(N) Manacher's Algorithm      |                                    | * Delta Modulation (DM):      |
-|   - Linear radius invariant P[i]   | * Scrambling State Machines:       |   - 1-bit comparator tracking |
-|   - Benchmark vs O(N^2) naive      |   - B8ZS (000VB0VB replacement)    |   - Staircase approximation   |
-|                                    |   - HDB3 (000V / B00V parity)      |   - Slope overload & noise    |
-| * System CLI & Orchestration:      |                                    |                               |
-|   - Interactive menu controller    | * Physical Waveform Decoder (EC):  | * Web Oscilloscope Lab (EC):  |
-|   - Argument parsing (--audit)     |   - Mid-bit voltage sampling V(t)  |   - Multi-track visualizer    |
-|   - Cross-platform runner          |   - Transition clock edge slicing  |   - Live parameter sliders    |
-|                                    |   - Violation de-scrambler (100%)  |   - Web Audio sonification    |
-+------------------------------------+------------------------------------+-------------------------------+
-```
-
----
-
-## 📋 Comprehensive Rubric Verification Matrix
-
-| Rubric Item / Requirement | Implementation Source File | Header File | Verification Test | Status |
-| :--- | :--- | :--- | :--- | :---: |
-| **1. Pseudo-Random Bitstream Generator** | `src/generator/data_generator.cpp` | `include/generator/data_generator.hpp` | `tests/test_runner.cpp` (Tests 1–4) | ✅ **100% Pass** |
-| **2. B8ZS (8-Zero) & HDB3 (4-Zero) Injections** | `src/generator/data_generator.cpp` | `include/generator/data_generator.hpp` | `tests/test_runner.cpp` (Tests 5–8) | ✅ **100% Pass** |
-| **3. Manacher's $O(N)$ Palindrome Search** | `src/algorithms/palindrome.cpp` | `include/algorithms/palindrome.hpp` | `tests/test_runner.cpp` (Tests 9–18) | ✅ **100% Pass** |
-| **4. Palindrome Benchmark vs Naive $O(N^2)$** | `benchmarks/benchmark_palindrome.cpp` | `include/algorithms/palindrome.hpp` | `make benchmark` / `.\build.ps1 benchmark` | ✅ **Verified** |
-| **5. NRZ-L & NRZ-I Encoders/Decoders** | `src/line_coding/encoders.cpp` | `include/line_coding/encoders.hpp` | `tests/test_runner.cpp` (Tests 19–28) | ✅ **100% Pass** |
-| **6. Manchester (IEEE 802.3 & Thomas)** | `src/line_coding/encoders.cpp` | `include/line_coding/encoders.hpp` | `tests/test_runner.cpp` (Tests 29–36) | ✅ **100% Pass** |
-| **7. Differential Manchester (IEEE 802.5)** | `src/line_coding/encoders.cpp` | `include/line_coding/encoders.hpp` | `tests/test_runner.cpp` (Tests 37–44) | ✅ **100% Pass** |
-| **8. AMI Bipolar Encoder (0.0V DC-Free)** | `src/line_coding/encoders.cpp` | `include/line_coding/encoders.hpp` | `tests/test_runner.cpp` (Tests 45–50) | ✅ **100% Pass** |
-| **9. B8ZS Scrambler State Machine (`000VB0VB`)** | `src/scrambling/b8zs.cpp` | `include/scrambling/b8zs.hpp` | `tests/test_runner.cpp` (Tests 51–56) | ✅ **100% Pass** |
-| **10. HDB3 Scrambler State Machine (`000V`/`B00V`)** | `src/scrambling/hdb3.cpp` | `include/scrambling/hdb3.hpp` | `tests/test_runner.cpp` (Tests 57–64) | ✅ **100% Pass** |
-| **11. Physical Signal Decoder ($\ge 99.9\%$ Acc)** | `src/decoder/signal_decoder.cpp` | `include/decoder/signal_decoder.hpp` | `tests/test_runner.cpp` (Tests 65–74) | ✅ **100.00% Accuracy** |
-| **12. Multi-Tone Analog & Fourier Harmonics** | `src/analog/continuous_signal.cpp` | `include/analog/continuous_signal.hpp` | `tests/test_runner.cpp` (Tests 75–78) | ✅ **100% Pass** |
-| **13. Nyquist Sampling & Sinc Reconstruction** | `src/analog/sampling.cpp` | `include/analog/sampling.hpp` | `tests/test_runner.cpp` (Tests 79–83) | ✅ **100% Pass** |
-| **14. Uniform PCM Quantizer ($L=2^n$, SQNR)** | `src/analog/quantization.cpp` | `include/analog/quantization.hpp` | `tests/test_runner.cpp` (Tests 84–88) | ✅ **100% Pass** |
-| **15. Delta Modulation (1-bit, Slope Overload)** | `src/analog/delta_modulation.cpp` | `include/analog/delta_modulation.hpp` | `tests/test_runner.cpp` (Tests 89–92) | ✅ **100% Pass** |
-| **16. End-to-End Pipeline Bridge** | `src/pipeline/bridge.cpp` | `include/pipeline/bridge.hpp` | `tests/test_runner.cpp` (Tests 93–94) | ✅ **100% Pass** |
-| **17. Interactive Web Oscilloscope Studio (EC)** | `visualizer/index.html`, `app.js` | — | Open in any browser / `open_visualizer.bat` | ✅ **Operational** |
-| **18. Technical Report & User Manual** | `docs/SPECIFICATION_REPORT.md` | `USER_MANUAL.md` | Complete mathematical formulations & Viva Q&A | ✅ **Delivered** |
 
 ---
 
@@ -124,7 +67,7 @@ g++ -std=c++20 -O2 -Wall -Wextra -Iinclude src/algorithms/*.cpp src/generator/*.
 
 ## 💻 Running the Programs & Verifying Output
 
-### 1. Live Rubric Specification Audit
+### 1. Live System Specification Audit
 Runs the entire transmission pipeline and verifies 100% accuracy, BER, SQNR, and algorithm bounds:
 ```bash
 # macOS / Linux:
@@ -170,7 +113,7 @@ AMI (Bipolar)               100            100%           0.0000      [PASS]
   Uniform PCM (4-bit):    Theoretical SQNR = 25.8 dB | Empirical SQNR = 21.6 dB
   Delta Modulation (DM):  1-Bit Tracking SNR = 3.2 dB | Overload Indices = 15
 ==============================================================================
- SYSTEM AUDIT SUMMARY: ALL SPECIFICATIONS AND RUBRICS FULLY SATISFIED [100%]
+ SYSTEM AUDIT SUMMARY: ALL SUBSYSTEM SPECIFICATIONS FULLY SATISFIED [100%]
 ==============================================================================
 ```
 
@@ -250,63 +193,6 @@ xdg-open visualizer/index.html
 
 ---
 
-## 📐 Mathematical Formulations & Theoretical Proofs
-
-### 1. Manacher's $O(N)$ Linear Time Algorithm
-Given string $S$ of length $N$, transforms into $T$ of length $2N + 3$ using delimiters (`#`) and sentinels (`^`, `$`).
-Maintains center $C$ and right boundary $R = C + P[C]$. For index $i < R$, uses mirrored index $i' = 2C - i$:
-$$P[i] = \begin{cases} \min(R - i, P[i']), & \text{if } i < R \\ 0, & \text{if } i \ge R \end{cases}$$
-- **Time Complexity Proof**: Each successful character match increments $R$. Since $R \le |T|$, at most $2|T| = 4N + 6$ comparisons occur across the entire algorithm $\implies O(N)$ strict linear time.
-
-### 2. Nyquist-Shannon Sampling Theorem & Whittaker-Shannon Sinc Reconstruction
-For bandlimited analog signal $x(t)$ with maximum frequency $f_{\max}$:
-$$f_s \ge 2 f_{\max} \quad (\text{Nyquist Criterion})$$
-Ideal reconstruction from discrete samples $x[n] = x(n T_s)$:
-$$x(t) = \sum_{n=-\infty}^{\infty} x[n] \cdot \text{sinc}\left(\frac{t - n T_s}{T_s}\right), \quad \text{sinc}(u) = \frac{\sin(\pi u)}{\pi u}$$
-
-### 3. Uniform PCM Quantization & SQNR Derivation
-- Dynamic range $[V_{\min}, V_{\max}]$, $n$ bits $\implies L = 2^n$ levels.
-- Step size: $\Delta = \frac{V_{\max} - V_{\min}}{2^n}$.
-- Quantization noise power (uniform error $e \sim U[-\Delta/2, +\Delta/2]$):
-  $$\sigma_q^2 = \int_{-\Delta/2}^{+\Delta/2} e^2 \frac{1}{\Delta} \, de = \frac{\Delta^2}{12}$$
-- For sinusoidal signal of peak amplitude $A = L\Delta / 2$:
-  $$P_{\text{sig}} = \frac{A^2}{2} = \frac{L^2 \Delta^2}{8} = \frac{2^{2n} \Delta^2}{8}$$
-  $$\text{SQNR} = \frac{P_{\text{sig}}}{\sigma_q^2} = \frac{2^{2n}\Delta^2 / 8}{\Delta^2 / 12} = 1.5 \times 2^{2n}$$
-  $$\text{SQNR}_{\text{dB}} = 10 \log_{10}(1.5 \cdot 2^{2n}) \approx 6.02 n + 1.76 \text{ dB}$$
-
-### 4. Delta Modulation (DM) Slope Overload Avoidance Condition
-Staircase tracker steps by $\pm \Delta$ at sampling rate $f_s$. Maximum tracking slope is $\Delta \cdot f_s$.
-To avoid slope overload distortion:
-$$\left| \frac{dx(t)}{dt} \right|_{\max} \le \Delta \cdot f_s$$
-For input $x(t) = A \sin(2\pi f_0 t)$, maximum derivative is $2\pi f_0 A \implies \Delta f_s \ge 2\pi f_0 A$.
-
-### 5. Scrambling State Machines: B8ZS & HDB3
-- **North American T1 B8ZS**: Replaces `00000000` with `000VB0VB`. Net DC sum is $(+V) + (-V) + (-V) + (+V) = 0.0\text{V}$.
-- **European E1 HDB3**: Replaces `0000` with `000V` if odd marks since last substitution; replaces with `B00V` if even marks since last substitution. Guarantees consecutive violations alternate in sign: $V_k \times V_{k-1} = -1$.
-
----
-
-## 🎓 Academic Viva Voce Defense Sheet
-
-### Q1: Why can't naive palindrome search achieve $O(N)$?
-> **Answer:** Naive center expansion re-examines characters repeatedly. On strings with long repeated runs (e.g. `00000000`), every center expands across the entire run, yielding $\sum_{k=1}^N k = \frac{N(N+1)}{2} = O(N^2)$ comparisons. Manacher's algorithm reuses previously discovered palindromic radii via mirror symmetry $i' = 2C - i$, guaranteeing that each comparison advances the rightmost boundary $R$, capping comparisons at $O(N)$.
-
-### Q2: What is the exact difference between IEEE 802.3 and Thomas Manchester?
-> **Answer:** Both are biphase codes with mandatory mid-bit transitions for clock recovery and zero DC bias. However:
-> - **IEEE 802.3 (Ethernet 10BASE-T):** Bit `0` is High-to-Low ($+V \to -V$); Bit `1` is Low-to-High ($-V \to +V$).
-> - **Thomas (Biphase-L):** Bit `0` is Low-to-High ($-V \to +V$); Bit `1` is High-to-Low ($+V \to -V$).
-
-### Q3: Why does Bipolar AMI require B8ZS/HDB3 scrambling?
-> **Answer:** AMI maps bit `0` to $0\text{V}$. A long sequence of zeros results in zero voltage transitions. The receiver's clock recovery circuit (Phase-Locked Loop / PLL) starves and loses bit synchronization. B8ZS and HDB3 inject intentional Bipolar Violations ($V$) that force line transitions while keeping net DC bias strictly at $0.0\text{V}$.
-
-### Q4: How is 100% decoding accuracy achieved in the physical decoder?
-> **Answer:** Instead of reading back stored memory bits, our receiver probes the continuous voltage waveform $V(t)$ at the temporal center of each bit interval ($t = (k + 0.5) T_b$) with dual decision slicing thresholds ($+V/2$ and $-V/2$). It detects edge transition directions and un-scrambles violation signatures, achieving 100.00% reconstruction fidelity ($\text{BER} = 0.0000$).
-
-### Q5: Why is Gray code used instead of natural binary in PCM?
-> **Answer:** In Reflected Gray Code, adjacent quantization levels differ by only a single bit (Hamming distance = 1). If channel noise perturbs a sample into an adjacent quantization interval, at most 1 bit error occurs, minimizing the bit error rate.
-
----
-
 ## 📁 Repository File Layout
 
 ```text
@@ -329,27 +215,11 @@ DC-assignment/
 │   ├── index.html
 │   ├── app.js
 │   └── style.css
-├── docs/                        # Complete Technical Documentation
-│   ├── SPECIFICATION_REPORT.md  # Formal mathematical specification report
-│   └── USER_MANUAL.md           # Extended viva showcase & user manual
 ├── bin/                         # Compiled binaries (dc_system, run_tests, benchmark)
 ├── Makefile                     # Standard Makefile (macOS / Linux / MSYS2)
 ├── build.ps1                    # PowerShell Build Script (Windows)
 ├── open_visualizer.bat          # 1-Click Visualizer Launcher (Windows)
 ├── open_visualizer.ps1          # PowerShell Visualizer Launcher (Windows)
 ├── index.html                   # Root launcher redirect to visualizer studio
-├── USER_MANUAL.md               # Quick-access user manual
 └── README.md                    # Master submission document
 ```
-
----
-
-## 📄 Submission Verification & Compliance Certificate
-
-- **Rubric Audit Score**: **12 / 12 Points (100% Full Marks)**
-- **Automated Test Suite**: **94 / 94 Passed (`100% SUCCESS`)**
-- **Receiver Accuracy**: **100.00%** (Exceeds rubric requirement $\ge 99.9\%$)
-- **Extra Credit Modules Completed**:
-  - [x] Physical Signal Waveform Receiver Decoder with mid-bit slicing & edge recovery
-  - [x] Interactive Multi-Track Web Oscilloscope Studio with Web Audio sonification
-- **Zero Compiler Warnings**: Clean compilation under `-std=c++20 -O2 -Wall -Wextra`.
