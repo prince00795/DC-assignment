@@ -18,8 +18,9 @@ COMMON_SRCS = \
 
 APP_SRCS = $(COMMON_SRCS) src/cli/menu.cpp src/cli/report.cpp src/main.cpp
 TEST_SRCS = $(COMMON_SRCS) tests/test_runner.cpp
+BENCH_SRCS = src/algorithms/palindrome.cpp src/generator/data_generator.cpp benchmarks/benchmark_palindrome.cpp
 
-all: bin/dc_system bin/run_tests
+all: bin/dc_system bin/run_tests bin/benchmark
 
 bin:
 	mkdir -p bin
@@ -30,10 +31,16 @@ bin/dc_system: $(APP_SRCS) | bin
 bin/run_tests: $(TEST_SRCS) | bin
 	$(CXX) $(CXXFLAGS) $(TEST_SRCS) -o bin/run_tests
 
+bin/benchmark: $(BENCH_SRCS) | bin
+	$(CXX) $(CXXFLAGS) $(BENCH_SRCS) -o bin/benchmark
+
 test: bin/run_tests
 	./bin/run_tests
+
+benchmark: bin/benchmark
+	./bin/benchmark
 
 clean:
 	rm -rf bin
 
-.PHONY: all test clean
+.PHONY: all test benchmark clean

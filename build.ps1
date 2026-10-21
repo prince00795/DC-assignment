@@ -42,6 +42,17 @@ if ($Target -eq "all" -or $Target -eq "test") {
     Write-Host "[Success] bin/run_tests.exe built successfully." -ForegroundColor Green
 }
 
+if ($Target -eq "all" -or $Target -eq "benchmark") {
+    Write-Host "[Building] Compiling bin/benchmark.exe..." -ForegroundColor Cyan
+    $bench_srcs = @("src/algorithms/palindrome.cpp", "src/generator/data_generator.cpp", "benchmarks/benchmark_palindrome.cpp")
+    & $CXX $CXXFLAGS $bench_srcs -o "bin/benchmark.exe"
+    Write-Host "[Success] bin/benchmark.exe built successfully." -ForegroundColor Green
+}
+
 if ($Target -eq "run-test") {
     & ".\bin\run_tests.exe"
+}
+
+if ($Target -eq "run-benchmark") {
+    & ".\bin\benchmark.exe"
 }

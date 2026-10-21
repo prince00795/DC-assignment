@@ -282,7 +282,13 @@ void MenuController::run_interactive() {
             show_help_guide();
         } else if (choice == 9) {
             std::cout << "[Visualizer] Launching interactive studio in default browser...\n";
+#if defined(_WIN32) || defined(_WIN64)
             system("start visualizer\\index.html");
+#elif defined(__APPLE__)
+            system("open visualizer/index.html");
+#else
+            system("xdg-open visualizer/index.html 2>/dev/null || sensible-browser visualizer/index.html 2>/dev/null || true");
+#endif
         } else {
             std::cout << "Invalid choice. Please select an option between 0 and 9.\n";
         }
