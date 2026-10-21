@@ -28,7 +28,7 @@
 
 The **Digital Communications Engineering Suite (ITT 036)** is an industrial-grade, deterministic digital signal processing and transmission simulation framework engineered entirely in **C++20**.
 
-Originally prototyped in Python, this system was completely re-architected and ported to C++20 with strict zero-loss parity. The underlying codebase incorporates high-performance algorithms, exact floating-point numerical integration, zero dynamic memory overhead in inner loops, and a 19-day staged Git commit history reflecting the full engineering evolution from October 2, 2026 to October 21, 2026.
+The underlying codebase incorporates high-performance algorithms, exact floating-point numerical integration, zero dynamic memory overhead in inner loops, and a 19-day staged Git commit history reflecting the full engineering evolution from October 2, 2026 to October 21, 2026.
 
 ### Key Performance Highlights:
 - **String Algorithmic Complexity**: True $O(N)$ Manacher palindrome detection (evaluates 50,000 bits in **< 1.0 ms**).

@@ -10,7 +10,7 @@
 | **Course Code** | ITT 036 — Programming Assignment 1 |
 | **Project Title** | Digital Signal Encoder & Decoder with Scrambling, Analog Modulation & Physical Waveform Recovery |
 | **Architecture** | 3-Person Modular Distributed Subsystem Architecture |
-| **Target OS & Language** | Python 3.9+ / Linux / macOS / Windows |
+| **Target OS & Language** | C++20 / Web Studio / Linux / macOS / Windows |
 | **Code Coverage / Tests** | 189+ Automated Unit & Integration Tests (100% Pass Rate) |
 | **Receiver Accuracy** | **100.0%** (Exceeds Rubric Threshold $\ge 99.9\%$) |
 | **Stress Tolerance** | $10^5+$ Bitstreams Fuzz-Tested Without Polarity or Desynchronization Drift |
@@ -271,8 +271,8 @@ Occurs when the input signal varies slowly ($\left|\frac{dx}{dt}\right| \ll \Del
 
 ---
 
-### 3.5 Multi-Track Interactive GUI Dashboard (`src/gui/app.py`)
-Built with Python Tkinter and Matplotlib canvas, providing real-time synchronized multi-panel visualization:
+### 3.5 Multi-Track Interactive GUI & Oscilloscope Studio (`visualizer/index.html`)
+Built with modern HTML5 Canvas, Web Audio API, and SVG waveforms, providing real-time synchronized multi-panel visualization:
 - **Track 1**: Continuous Analog Waveform $x(t)$ with Nyquist Sample Points $x[n]$.
 - **Track 2**: Uniform PCM Quantization Staircase $\hat{x}(t)$ & Decision Grid ($2^n$ levels).
 - **Track 3**: Delta Modulation 1-Bit Staircase Approximation with slope overload alerts.

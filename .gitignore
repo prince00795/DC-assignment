@@ -25,7 +25,7 @@ compile_commands.json
 *~
 .DS_Store
 
-# Python caches
+# Caches & temporary files
 __pycache__/
 *.pyc
 .pytest_cache/
